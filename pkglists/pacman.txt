@@ -81,6 +81,7 @@ chaos-ioschedulers
 chaos-systemd-watchdog
 chaos-configs-git
 chaos-sysctl
+chaos-grub
 grub-theme-heisenberg-chemistry-git
 VVallpapers-git
 gtk-cyberpunk-neon-theme-git
