@@ -55,7 +55,7 @@ internet_connection_check
 cls_n_banner || echo "ERROR: Failed to put banner."
 
 echo "############################################################################"
-echo "########                   INSTALLING NEON-OS                       ########"
+echo "########                   INSTALLING chaos                       ########"
 echo "############################################################################"
 
 keys() {
@@ -115,7 +115,7 @@ update_mirrorlists() {
 	sudo pacman -S reflector rsync --ask 4
 	sudo reflector --save /etc/pacman.d/mirrorlist -a 48 -l 20 -f 5 --sort rate --protocol https --verbose --download-timeout 60
 	sudo cp etc/pacman.conf /etc/pacman.conf
-	sudo pacman -Sy neon-os-pacman --overwrite=\* --ask 4
+	sudo pacman -Sy chaos-pacman --overwrite=\* --ask 4
 }
 
 update_mirrorlists || echo "ERROR: Failed updating mirrorlist using reflector"
@@ -365,7 +365,7 @@ ssh_install() {
 		case $answer10 in
 		"Y" | "y" | "")
 			echo "installing openssh/ssh"
-			sudo pacman -S openssh neon-os-sshd --ask 4 --overwrite=\*
+			sudo pacman -S openssh chaos-sshd --ask 4 --overwrite=\*
 			break
 			;;
 		"N" | "n")
@@ -403,7 +403,7 @@ paru_make_install() {
 	paru_clone_install || cd paru-bin
 	makepkg -si
 	# internet_connection_check
-	sudo pacman -S neon-os-paru --ask 4 --overwrite=\*
+	sudo pacman -S chaos-paru --ask 4 --overwrite=\*
 }
 
 paru_make_install || echo "ERROR: Failed to install aura-bin"
@@ -414,7 +414,7 @@ echo "########                   INSTALLING AUR PACKAGES                  ######
 echo "############################################################################"
 
 cd
-paru -S - --ask 4 --overwrite=\* <neon-os/pkglists/yay.txt
+paru -S - --ask 4 --overwrite=\* <chaos/pkglists/yay.txt
 sudo pacman -S stdm-git --ask 4
 
 cls_n_banner || echo "ERROR: Failed to put banner."
@@ -454,17 +454,16 @@ optimus_manager_install() {
 	echo "---C----              Installing optimus-manager                    ---C----"
 	sudo mkdir /etc/sddm.conf.d/ || echo "ERROR: Folder already exists"
 	while :; do
-		read -p "do you want to install optimus-manager [Yy/Nn]? " answer8
+		read -p "do you want to install bumblebee [Yy/Nn]? " answer8
 		case $answer8 in
 		"Y" | "y" | "")
-			echo "installing optimus-manager"
-			paru -S optimus-manager-qt --ask 4 --overwrite=\*
-			sudo pacman -S neon-os-optimus-manager neon-os-sddm-nvidia --ask 4 --overwrite=\*
+			echo "installing bumblebee"
+			sudo pacman -S bumblebee chaos-optimus-manager chaos-sddm-nvidia --ask 4 --overwrite=\*
 			break
 			;;
 		"N" | "n")
 			echo "terminated"
-			sudo pacman -S neon-os-sddm --ask 4 --overwrite=\*
+			sudo pacman -S chaos-sddm --ask 4 --overwrite=\*
 			break
 			;;
 		*)
@@ -478,7 +477,7 @@ optimus_manager_install || echo "ERROR: Failed to install optimus-manager and sd
 
 cls_n_banner || echo "ERROR: Failed to put banner."
 echo "############################################################################"
-echo "########               ADDING WALLPAPERS FOR neon-os                ########"
+echo "########               ADDING WALLPAPERS FOR chaos                  ########"
 echo "############################################################################"
 
 cd
@@ -547,10 +546,10 @@ echo "##########################################################################
 echo "########                  PLACING THE CONFIG FILES                  ########"
 echo "############################################################################"
 
-cd ~/neon-os
+cd ~/chaos
 
-if [[ -d "/etc/neon-os/dotfiles/.config/" ]]; then
-	sudo cp -rsvf /etc/neon-os/dotfiles/.config/* ~/.config/
+if [[ -d "/etc/chaos/dotfiles/.config/" ]]; then
+	sudo cp -rsvf /etc/chaos/dotfiles/.config/* ~/.config/
 	sudo chown $USER -R ~/.config/
 else
 	echo "ERROR: Failed to place configs"
@@ -569,27 +568,31 @@ echo "##########################################################################
 git clone https://github.com/neovim/neovim || echo "ERROR: Repository folder already exists"
 cd neovim && make CMAKE_BUILD_TYPE=Release
 sudo make install
-git clone --depth 1 https://github.com/wbthomason/packer.nvim ~/.local/share/nvim/site/pack/packer/start/packer.nvim || echo "ERROR: Repository folder already exists"
 rustup default stable
 sudo pacman -S powerline-fonts-git --ask 4
 sudo fc-cache -r -v
 
 cls_n_banner || echo "ERROR: Failed to put banner."
 echo "############################################################################"
-echo "########                    ENABLING SERVICES                       ########"
+echo "########                   CONFIGURING SERVICES                     ########"
 echo "############################################################################"
 
 sudo systemctl enable bluetooth || echo "ERROR: Failed to enable bluetooth"
 # sudo systemctl enable reflector.service reflector.timer || echo "ERROR: Failed to enable reflector"
 sudo systemctl enable snapper-timeline.timer snapper-cleanup.timer || echo "ERROR: Failed to enable snapper"
 sudo timedatectl set-ntp true || echo "ERROR: Failed to set ntp time"
-sudo systemctl mask systemd-rfkill.service systemd-rfkill.socket || echo "ERROR: Failed to enable systemd-rfkill"
-systemctl enable --user pipewire.service p11-kit-server.service systemd-tmpfiles-clean.timer systemd-tmpfiles-setup.service appimagelauncherd.service gnome-keyring-daemon.service obex.service gcr-ssh-agent.service gpg-agent.service || echo "ERROR: Failed to enable user level services"
-sudo systemctl enable clamav-freshclam.service clamav-clamonacc.service clamav-daemon.socket || echo "ERROR: Failed to enable clamav"
+sudo systemctl enable chronyd.service || echo "ERROR: Failed to enable chronyd"
+sudo systemctl mask systemd-rfkill.service systemd-rfkill.socket || echo "ERROR: Failed to mask systemd-rfkill"
+sudo systemctl mask tmp.mount || echo "ERROR: Failed to mask tmp.mount"
+systemctl enable --user pipewire.service psd.service p11-kit-server.service systemd-tmpfiles-clean.timer systemd-tmpfiles-setup.service gnome-keyring-daemon.service gcr-ssh-agent.service gpg-agent.service wireplumber.service || echo "ERROR: Failed to enable user level services"
+# sudo systemctl enable clamav-freshclam.service clamav-clamonacc.service clamav-daemon.socket || echo "ERROR: Failed to enable clamav"
 sudo systemctl enable set-cfs-tweaks.service || echo "ERROR: Failed to enable cfs tweaks"
-sudo systemctl enable asd.service asd-resync.service asd-resync.timer || echo "ERROR: Failed to enable anything-sync-daemon"
+# sudo systemctl enable asd.service asd-resync.service asd-resync.timer || echo "ERROR: Failed to enable anything-sync-daemon"
+sudo systemctl enable irqbalance.service || echo "ERROR: Failed to enable irqbalance"
+sudo systemctl enable preload.service ||echo "ERROR: Failed to enable preload"
+sudo systemctl enable rtkit-daemon.service ||echo "ERROR: Failed to enable rtkit"
 
-cd ~/neon-os
+cd ~/chaos
 sudo mkdir -p ~/.config/systemd/user/ || "ERROR: Folder already exists"
 cp services/* .config/systemd/user/
 systemctl --user daemon-reload
@@ -604,8 +607,9 @@ laptop_or_desktop() {
 		case $answer2 in
 		"y" | "Y" | "")
 			echo "enabling tlp"
-			sudo pacman -S neon-os-tlp --ask 4 --overwrite=\*
-			sudo systemctl enable tlp
+			sudo pacman -S chaos-tlp --ask 4 --overwrite=\*
+            paru -S auto-cpufreq --ask 4 --overwrite=\*
+			sudo systemctl enable tlp auto-cpufreq
 			sudo tlp start
 			break
 			;;
@@ -683,7 +687,7 @@ nextdns_install() {
 		case $yn in
 		"Y" | "y")
 			echo "setting up faster dns"
-			sudo pacman -S neon-os-dns --ask 4 --overwrite=\*
+			sudo pacman -S chaos-dns --ask 4 --overwrite=\*
 			sudo systemctl enable systemd-resolved.service || echo "ERROR: Failed to enable systemd-resolved.service"
 			break
 			;;
@@ -713,7 +717,7 @@ watchdog_blacklist() {
 			case $yn in
 			"y" | "Y" | "")
 				echo "disabling watchdog"
-				sudo pacman -S neon-os-watchdog-blacklist --ask 4 --overwrite=\*
+				sudo pacman -S chaos-watchdog-blacklist --ask 4 --overwrite=\*
 				break
 				;;
 			"N" | "n")
@@ -826,7 +830,6 @@ ufw_firewall_install() {
 			sudo ufw allow 53
 			sudo ufw allow 80
 			sudo ufw allow 443
-			sudo ufw allow 9050
 			sudo ufw limit 22
 			sudo ufw default deny incoming
 			sudo ufw default allow outgoing
@@ -865,7 +868,7 @@ fail2ban_install() {
 		case $yn in
 		"Y" | "y" | "")
 			echo "installing fail2ban"
-			sudo pacman -S fail2ban neon-os-fail2ban --ask 4 --overwrite=\*
+			sudo pacman -S fail2ban chaos-fail2ban --ask 4 --overwrite=\*
 			sudo systemctl enable fail2ban.service || echo "ERROR: Failed to enable fail2ban"
 			break
 			;;
@@ -881,6 +884,17 @@ fail2ban_install() {
 }
 
 fail2ban_install || echo "ERROR: Failed to install fail2ban"
+
+cls_n_banner || echo "ERROR: Failed to put banner."
+echo "############################################################################"
+echo "########                 IMPROVING PCI-E PERFORMANCE                ########"
+echo "############################################################################"
+# Reset the latency timer for all PCI devices
+sudo setpci -v -s '*:*' latency_timer=20
+sudo setpci -v -s '0:0' latency_timer=0
+
+# Set latency timer for all sound cards
+sudo setpci -v -d "*:*:04xx" latency_timer=80
 
 cls_n_banner || echo "ERROR: Failed to put banner."
 echo "############################################################################"

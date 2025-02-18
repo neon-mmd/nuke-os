@@ -1,3 +1,4 @@
+ttf-ms-fonts
 lain-git
 beautyline
 nordic-theme-git
@@ -11,10 +12,6 @@ tabulate
 universal-android-debloater-bin
 peazip-qt-bin
 ventoy-bin
-<<<<<<< HEAD
-pokete
-=======
->>>>>>> main
 dracula-gtk-theme
 sweet-dark-theme
 candy-icons-git
@@ -22,7 +19,9 @@ material-black-colors-theme
 materialos-icon-theme-git
 solarized-dark-themes
 numix-circle-icon-theme-git
-polkit-dumb-agent
 lightly-git
-wireplumber
 tplay-git
+preload
+ente-auth-bin
+notesnook-bin
+onlyoffice-bin
